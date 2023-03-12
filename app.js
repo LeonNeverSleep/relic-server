@@ -70,6 +70,21 @@ app.post('/edit', function (req, res, next) {
         }
     })
 });
+//修改个人信息
+app.post('/editUserData', function (req, res, next) {
+    let name = req.body.data.name
+    let address = req.body.data.address
+    let phone = req.body.data.phone
+    let password = req.body.data.password
+    let sql = `UPDATE users SET address=?,phone=?,password=? where name=?`
+    db.querySql(sql, [address, phone, password, name], function (err, results) {
+        if (err) {
+            res.json({ code: 500, data: null, message: err.sqlMessage })
+        } else {
+            res.json({ code: 200, data: results, message: 'success' })
+        }
+    })
+});
 // jwt鉴权
 app.post('/login', function (req, res, next) {
     const name = req.body.data.name;
@@ -120,7 +135,7 @@ app.post('/editRelic', function (req, res, next) {
     let relicImg = req.body.data.relicImg
     let relicAuthority = req.body.data.relicAuthority
     let sql = `UPDATE relics SET relicName=?,relicType=?,relicIntro=?,relicImg=?,relicAuthority=? where relicId=?`
-    db.querySql(sql, [relicName, relicType, relicAuthority, relicIntro, relicImg, relicId], function (err, results) {
+    db.querySql(sql, [relicName, relicType, relicIntro, relicImg, relicAuthority, relicId], function (err, results) {
         if (err) {
             res.json({ code: 500, data: null, message: err.sqlMessage })
         } else {
