@@ -2,8 +2,19 @@ const express = require("express");
 const app = express()
 const db = require('./mysql.js')
 const jws = require('./jws.js');
-
 app.use(express.json())
+const fs = require('fs');
+const multer = require('multer');
+const path = require('path');
+
+const bodyParser = require('body-parser');
+//配置静态资源文件
+app.use(express.static(__dirname + "/public"));
+// 配置静态资源目录 整一个文件夹 通过域名能访问
+// app.use(express.static(path.join(__dirname, "../static")))
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json())
+app.use(multer({ dest: '/tmp/' }).array('file'));
 /* 用户增删改查begin */
 //显示所有用户
 app.get('/users', function (req, res, next) {
@@ -145,12 +156,14 @@ app.post('/editRelic', function (req, res, next) {
 });
 //添加当前管理下的文物
 app.post('/addRelic', function (req, res, next) {
+    let relicId = req.body.data.relicId
     let relicName = req.body.data.relicName
     let relicType = req.body.data.relicType
     let relicIntro = req.body.data.relicIntro
     let relicImg = req.body.data.relicImg
     let relicAuthority = req.body.data.relicAuthority
-    let sql = `INSERT INTO users ( relicName,relicType,relicIntro,relicImg,relicAuthority ) VALUES ( '${relicName}','${relicType}','${relicIntro}','${relicImg}','${relicAuthority}' )`
+    console.log(relicId, relicName, relicType, relicIntro, relicImg, relicAuthority);
+    let sql = `INSERT INTO relics ( relicId,relicName,relicType,relicIntro,relicImg,relicAuthority ) VALUES ( '${relicId}','${relicName}','${relicType}','${relicIntro}','${relicImg}','${relicAuthority}' )`
     db.querySql(sql, [], function (err, results) {
         if (err) {
             res.json({ code: 500, data: null, message: err.sqlMessage })
@@ -169,6 +182,26 @@ app.get('/allRelics', function (req, res, next) {
         }
     });
 });
+app.post('/fileUpload', (req, res) => {
+    console.log("1111", req.files[0]);
+    var fileUrl = __dirname + "/public/" + req.files[0].originalname; //文件名
+    console.log("2222", fileUrl);
+    fs.readFile(req.files[0].path, (err, response) => {
+        fs.writeFile(fileUrl, response, (err => { //文件写入
+            if (err) {
+                console.log(err);
+            } else {
+                // 文件上传成功，respones给客户端
+                res.json({
+                    message: 'File uploaded successfully',
+                    filename: req.files[0].originalname
+                });
+            }
+        }))
+    })
+})
+
+
 /* 文物增删改查end */
 
 //存储感知层信息
